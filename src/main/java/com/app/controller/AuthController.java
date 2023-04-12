@@ -1,6 +1,8 @@
 package com.app.controller;
 
 
+import com.app.dto.AuthenticationResponse;
+import com.app.dto.LoginDto;
 import com.app.dto.RegisterRequestDto;
 import com.app.service.AuthService;
 import lombok.AllArgsConstructor;
@@ -28,4 +30,12 @@ public class AuthController {
         authService.verifyAccount(token);
         return new ResponseEntity<>("user Account activated", HttpStatus.OK);
     }
+
+
+    @PostMapping("/login")
+    public AuthenticationResponse login(@RequestBody LoginDto loginDto){
+       return  authService.login(loginDto);
+    }
+
+
 }

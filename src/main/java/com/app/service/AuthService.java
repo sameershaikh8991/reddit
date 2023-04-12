@@ -1,14 +1,20 @@
 package com.app.service;
 
 import com.app.Exception.SpringRedditException;
+import com.app.dto.AuthenticationResponse;
+import com.app.dto.LoginDto;
 import com.app.dto.RegisterRequestDto;
 import com.app.model.NotificationEmail;
 import com.app.model.User;
 import com.app.model.VerificationToken;
 import com.app.repository.UserRepository;
 import com.app.repository.VerificationTokenRepository;
+import com.app.security.JwtProvider;
 import lombok.AllArgsConstructor;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,9 +31,10 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
     private  final VerificationTokenRepository verificationTokenRepository;
-
     private final MailService mailService;
+    private  final JwtProvider jwtProvider;
 
+    private final AuthenticationManager authenticationManager;
 @Transactional
     public void signup(RegisterRequestDto requestDto) throws Exception {
         User user = new User();
@@ -73,5 +80,14 @@ public class AuthService {
         user.setEnabled(true);
         userRepository.save(user);
 
+    }
+
+    public AuthenticationResponse login(LoginDto loginDto) {
+
+        Authentication authenticate = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginDto.getUsername(), loginDto.getPassword()));
+        SecurityContextHolder.getContext().setAuthentication(authenticate);
+        String token = jwtProvider.generateToken(authenticate);
+
+        return new AuthenticationResponse(token, loginDto.getUsername());
     }
 }
